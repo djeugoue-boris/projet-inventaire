@@ -10,7 +10,6 @@ containerSecurityContext:
     drop: ["ALL"]
   seccompProfile:
     type: RuntimeDefault
-
 frontend:
   replicas: 2
   image:
@@ -20,20 +19,19 @@ frontend:
   port: 8080
   runAsUser: 101
   resources:
-    requests: { cpu: 25m, memory: 32Mi }
-    limits: { memory: 64Mi }
-
+    requests: {cpu: 25m, memory: 32Mi}
+    limits: {memory: 64Mi}
 api:
   image:
-    repository: ghcr.io/VOTRE-COMPTE/inventaire-api   # mis a jour automatiquement par la CI
-    tag: "dev"
+    repository: ghcr.io/djeugoue-boris/inventaire-api # mis a jour automatiquement par la CI
+    tag: "bdef159cdffb8c8290d6c36e4d9cfab7aefc70ad"
     pullPolicy: IfNotPresent
   port: 3000
   runAsUser: 1000
-  replicas: 2            # utilise seulement si l'autoscaling est desactive
+  replicas: 2 # utilise seulement si l'autoscaling est desactive
   resources:
-    requests: { cpu: 100m, memory: 128Mi }
-    limits: { memory: 256Mi }
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {memory: 256Mi}
   autoscaling:
     enabled: true
     minReplicas: 2
@@ -44,8 +42,7 @@ api:
     minAvailable: 1
   serviceAccount:
     automountServiceAccountToken: false
-  imagePullSecrets: []   # ex. [{ name: ghcr-pull }] si le package GHCR reste prive
-
+  imagePullSecrets: [] # ex. [{ name: ghcr-pull }] si le package GHCR reste prive
 postgres:
   image:
     repository: postgres
@@ -55,39 +52,35 @@ postgres:
   database: inventaire
   user: inventaire
   storage: 1Gi
-  storageClassName: ""   # vide = StorageClass par defaut du cluster
+  storageClassName: "" # vide = StorageClass par defaut du cluster
   runAsUser: 999
   fsGroup: 999
   resources:
-    requests: { cpu: 100m, memory: 256Mi }
-    limits: { memory: 512Mi }
+    requests: {cpu: 100m, memory: 256Mi}
+    limits: {memory: 512Mi}
   # le mot de passe ne va PAS dans ce fichier : Secret cree hors du chart
   existingSecret: inventaire-postgres
   secretKey: password
-
 ingress:
   enabled: true
   className: nginx
   host: inventaire.local
   clusterIssuer: selfsigned
   tlsSecretName: inventaire-tls
-
 networkPolicies:
   enabled: true
   ingressControllerNamespace: ingress-nginx
   monitoringNamespace: monitoring
-
 rbac:
   lecteur:
     enabled: true
     name: lecteur
-
 monitoring:
   serviceMonitor:
     enabled: true
     interval: 15s
   prometheusRule:
     enabled: true
-    errorRateThreshold: 0.05     # 5 % de reponses 5xx
-    latencyP95Threshold: 0.5     # 500 ms
+    errorRateThreshold: 0.05 # 5 % de reponses 5xx
+    latencyP95Threshold: 0.5 # 500 ms
     for: 1m
