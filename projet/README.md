@@ -108,7 +108,7 @@ kind load docker-image inventaire-api:dev --name m2-k8s
 ```bash
 cd projet
 helm lint chart/inventaire
-helm upgrade --install inventaire ./chart/inventaire -n inventaire --create-namespace
+helm upgrade --install inventaire ./chart/inventaire -n inventaire --create-namespace --reset-values
 kubectl get all,pvc,ingress,hpa,networkpolicy -n inventaire
 ```
 
@@ -123,7 +123,7 @@ Grafana > Dashboards > New > Import > téléverser `observabilite/golden-signals
 
 **1. Installation**
 ```bash
-helm upgrade --install inventaire ./chart/inventaire -n inventaire --create-namespace
+helm upgrade --install inventaire ./chart/inventaire -n inventaire --create-namespace --reset-values
 kubectl get all,pvc,ingress,hpa,networkpolicy -n inventaire
 ```
 
@@ -177,7 +177,7 @@ La latence p95 dépasse 500 ms : `InventaireApiLatenceElevee` passe Pending puis
 **7. CI/CD** : modifier `projet/app/server.js` (par exemple le message de démarrage), commit et push. Le workflow build, scanne (Trivy), pousse sur GHCR et commite le nouveau tag dans `values.yaml`. Puis :
 ```bash
 git pull
-helm upgrade --install inventaire ./chart/inventaire -n inventaire
+helm upgrade --install inventaire ./chart/inventaire -n inventaire --reset-values
 kubectl -n inventaire get deploy inventaire-api -o jsonpath='{.spec.template.spec.containers[0].image}'
 ```
 
@@ -225,3 +225,10 @@ Pour deux raisons :
 - [ ] Dashboard JSON et PrometheusRule présents dans le dépôt
 - [ ] Dernier run du workflow vert
 - [ ] README complet
+
+## Difficultés rencontrées (compléments)
+
+- **Action Trivy introuvable** : `aquasecurity/trivy-action@0.28.0` n'était plus disponible (`unable to resolve action`). Remplacée par l'image officielle `aquasec/trivy` (version figée), en conservant le comportement bloquant sur les CRITICAL.
+- **Scan Trivy bloquant (il a fonctionné)** : CVE-2026-59873 (CRITICAL) dans `tar`, dépendance de npm embarqué dans l'image Node. Correction : Dockerfile multi-étapes, suppression de npm/npx/yarn/corepack de l'image finale (réduction de la surface d'attaque) et passage à Node 22 (Node 20 n'étant plus maintenu).
+- **Valeurs Helm reconduites** : un `helm upgrade` sans option de valeurs réutilise celles de la révision précédente (ici les `--set` du test local). Solution : `--reset-values` pour repartir du `values.yaml` mis à jour par la CI.
+- **Cluster Kind après redémarrage de Docker** : redirection de port de l'API bloquée (`connection reset by peer`, corrigée par `docker restart m2-k8s-control-plane`), puis échange d'adresses IP entre deux nœuds (Calico en conflit d'IP, control-plane NotReady). Correction : relancer les nœuds dans l'ordre pour qu'ils récupèrent leurs IP d'origine, puis redémarrer les Pods Calico.
