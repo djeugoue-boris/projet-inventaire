@@ -12,11 +12,11 @@ permissions:
 
 jobs:
   build-scan-push:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
-      # Le nom d'image GHCR doit etre en minuscules : on le calcule a partir du proprietaire du depot
+      # Le nom d'image GHCR doit etre en minuscules : calcule depuis le proprietaire du depot
       - name: Nom de l'image
         run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/inventaire-api" >> "$GITHUB_ENV"
 
@@ -26,13 +26,13 @@ jobs:
       - name: Build
         run: docker build -t $IMAGE:${{ github.sha }} projet/app
 
+      # Scan bloquant : le job echoue (exit-code 1) s'il reste une vulnerabilite CRITICAL corrigeable
       - name: Scan Trivy (bloquant)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
-          severity: CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.58.1 image \
+            --severity CRITICAL --ignore-unfixed --exit-code 1 --no-progress \
+            $IMAGE:${{ github.sha }}
 
       - name: Connexion a GHCR
         uses: docker/login-action@v3
