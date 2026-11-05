@@ -1,0 +1,13 @@
+{{- $c := dict "ctx" . "component" "api" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "inventaire.componentName" $c }}
+  labels:
+    {{- include "inventaire.labels" $c | nindent 4 }}
+data:
+  PORT: {{ .Values.api.port | quote }}
+  DB_HOST: {{ include "inventaire.componentName" (dict "ctx" . "component" "postgres") | quote }}
+  DB_PORT: {{ .Values.postgres.port | quote }}
+  DB_NAME: {{ .Values.postgres.database | quote }}
+  DB_USER: {{ .Values.postgres.user | quote }}

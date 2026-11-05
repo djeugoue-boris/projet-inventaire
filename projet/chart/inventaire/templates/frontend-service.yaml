@@ -1,0 +1,15 @@
+{{- $c := dict "ctx" . "component" "frontend" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "inventaire.componentName" $c }}
+  labels:
+    {{- include "inventaire.labels" $c | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "inventaire.selectorLabels" $c | nindent 4 }}
+  ports:
+  - name: http
+    port: {{ .Values.frontend.port }}
+    targetPort: http

@@ -1,0 +1,14 @@
+{{- if .Values.api.pdb.enabled }}
+{{- $c := dict "ctx" . "component" "api" -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "inventaire.componentName" $c }}
+  labels:
+    {{- include "inventaire.labels" $c | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.api.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "inventaire.selectorLabels" $c | nindent 6 }}
+{{- end }}

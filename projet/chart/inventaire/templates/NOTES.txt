@@ -1,0 +1,16 @@
+Inventaire {{ .Chart.AppVersion }} est deploye dans le namespace {{ .Release.Namespace }}.
+
+{{- if .Values.ingress.enabled }}
+
+Application : https://{{ .Values.ingress.host }}
+  /     -> frontend
+  /api  -> API
+(ajoutez "127.0.0.1 {{ .Values.ingress.host }}" dans votre fichier hosts)
+{{- end }}
+
+Verifications :
+  kubectl get all,pvc,ingress,hpa,networkpolicy -n {{ .Release.Namespace }}
+  curl -sk https://{{ .Values.ingress.host }}/api/health
+
+Rappel : le Secret PostgreSQL "{{ .Values.postgres.existingSecret }}" doit exister avant l'installation
+(kubectl create secret generic {{ .Values.postgres.existingSecret }} -n {{ .Release.Namespace }} --from-literal={{ .Values.postgres.secretKey }}=...).

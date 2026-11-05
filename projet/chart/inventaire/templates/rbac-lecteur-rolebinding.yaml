@@ -1,0 +1,16 @@
+{{- if .Values.rbac.lecteur.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "inventaire.fullname" . }}-lecteur
+  labels:
+    {{- include "inventaire.labels" (dict "ctx" . "component" "rbac") | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "inventaire.fullname" . }}-lecture-seule
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.rbac.lecteur.name }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}

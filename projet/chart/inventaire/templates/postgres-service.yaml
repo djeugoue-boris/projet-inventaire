@@ -1,0 +1,15 @@
+{{- $c := dict "ctx" . "component" "postgres" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "inventaire.componentName" $c }}
+  labels:
+    {{- include "inventaire.labels" $c | nindent 4 }}
+spec:
+  clusterIP: None   # Service Headless : identite DNS stable du Pod postgres-0
+  selector:
+    {{- include "inventaire.selectorLabels" $c | nindent 4 }}
+  ports:
+  - name: postgres
+    port: {{ .Values.postgres.port }}
+    targetPort: postgres

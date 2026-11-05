@@ -1,0 +1,30 @@
+# Surcharges pour la production :
+#   helm upgrade --install inventaire ./chart/inventaire -n inventaire \
+#     -f chart/inventaire/values.yaml -f chart/inventaire/values-prod.yaml
+
+frontend:
+  replicas: 3
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { memory: 128Mi }
+
+api:
+  resources:
+    requests: { cpu: 250m, memory: 256Mi }
+    limits: { memory: 512Mi }
+  autoscaling:
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  pdb:
+    minAvailable: 2
+
+postgres:
+  storage: 10Gi
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { memory: 1Gi }
+
+ingress:
+  host: inventaire.example.com
+  clusterIssuer: letsencrypt-prod

@@ -1,0 +1,14 @@
+{{- if .Values.networkPolicies.enabled }}
+# 1. Zero-trust : tout le trafic entrant et sortant est bloque par defaut
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inventaire.fullname" . }}-deny-all
+  labels:
+    {{- include "inventaire.labels" (dict "ctx" . "component" "network") | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+{{- end }}
