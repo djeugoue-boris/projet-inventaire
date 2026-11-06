@@ -5,7 +5,6 @@ Application trois tiers (frontend Nginx, API Node.js, PostgreSQL) packagée avec
 ## Membres du groupe
 
 - Boris Djeugoue
-- _(à compléter)_
 
 ## Architecture
 
